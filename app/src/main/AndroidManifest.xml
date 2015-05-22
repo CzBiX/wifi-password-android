@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.czbix.xposed.wifipassword">
+
+    <application android:allowBackup="false"
+                 android:label="WiFi Password"
+                 >
+        <meta-data android:name="xposedmodule"
+                   android:value="true"/>
+        <meta-data android:name="xposeddescription"
+                   android:value="View WiFi Passowrd in WiFi Settings"/>
+        <meta-data android:name="xposedminversion"
+                   android:value="54"/>
+    </application>
+
+</manifest>
