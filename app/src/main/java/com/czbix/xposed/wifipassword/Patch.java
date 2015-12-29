@@ -1,12 +1,17 @@
 package com.czbix.xposed.wifipassword;
 
+import android.app.ActivityManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiManager;
+import android.os.UserHandle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -29,20 +34,18 @@ public class Patch implements IXposedHookLoadPackage {
 
     private void hookWifiController(ClassLoader loader) {
         final Class<?> controller = XposedHelpers.findClass("com.android.settings.wifi.WifiConfigController", loader);
-        XposedHelpers.findAndHookMethod(controller, "showSecurityFields", showSecurityFieldsHook);
+        XposedHelpers.findAndHookConstructor(controller,
+                "com.android.settings.wifi.WifiConfigUiBase",
+                View.class,
+                "com.android.settings.wifi.AccessPoint",
+                boolean.class, methodHook);
     }
 
-    private final XC_MethodHook showSecurityFieldsHook = new XC_MethodHook() {
+    private final XC_MethodHook methodHook = new XC_MethodHook() {
         @Override
         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-
-            if (XposedHelpers.getBooleanField(param.thisObject, "mInXlSetupWizard")) {
-                return;
-            }
-
-            final int mSecurity = XposedHelpers.getIntField(param.thisObject, "mAccessPointSecurity");
-            if (mSecurity != 1 && mSecurity != 2) {
-                // open network or EAP
+            if (!isOwner()) {
+                // only show password for owner
                 return;
             }
 
@@ -56,16 +59,46 @@ public class Patch implements IXposedHookLoadPackage {
                 return;
             }
 
+            final boolean mEdit = XposedHelpers.getBooleanField(param.thisObject, "mEdit");
+            if (mEdit) {
+                return;
+            }
+
             final View mView = (View) XposedHelpers.getObjectField(param.thisObject, "mView");
-            String pwd = getWiFiPassword(mView.getContext(), networkId);
 
             final Resources resources = mView.getContext().getResources();
             final int idInfo = resources.getIdentifier("info", "id", PKG_NAME);
             final int idPwd = resources.getIdentifier("wifi_password", "string", PKG_NAME);
-
             final ViewGroup group = (ViewGroup) mView.findViewById(idInfo);
 
+            final int mSecurity = XposedHelpers.getIntField(param.thisObject, "mAccessPointSecurity");
+            String pwd;
+            if (mSecurity != 1 && mSecurity != 2) {
+                // open network or EAP
+                pwd = "N/A";
+            } else {
+                pwd = getWiFiPassword(mView.getContext(), networkId);
+            }
+
+            final String ssid = (String) XposedHelpers.getObjectField(mAccessPoint, "ssid");
+            addRow(param, idPwd, group, ssid, pwd);
+        }
+
+        private void addRow(MethodHookParam param, int idPwd, ViewGroup group, final String ssid, final String pwd) {
             XposedHelpers.callMethod(param.thisObject, "addRow", group, idPwd, pwd);
+            final View view = group.getChildAt(group.getChildCount() - 1);
+
+            view.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    final Context context = v.getContext();
+                    final ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                    clipboardManager.setPrimaryClip(ClipData.newPlainText(null,
+                            String.format("SSID: %s\nPWD: %s", ssid, pwd)));
+                    Toast.makeText(context, "WiFi info copied!", Toast.LENGTH_SHORT).show();
+                    return false;
+                }
+            });
         }
 
         private String getWiFiPassword(Context context, int networkId) {
@@ -86,4 +119,9 @@ public class Patch implements IXposedHookLoadPackage {
             return null;
         }
     };
+
+    private static boolean isOwner() {
+        final int currentUser = (int) XposedHelpers.callStaticMethod(ActivityManager.class, "getCurrentUser");
+        return currentUser == XposedHelpers.getStaticIntField(UserHandle.class, "USER_OWNER");
+    }
 }
