@@ -8,6 +8,7 @@ import android.content.res.Resources;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.UserHandle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class Patch implements IXposedHookLoadPackage {
     private static final String PKG_NAME = "com.android.settings";
+    private static final boolean isAboveM = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
 
     @Override
     public void handleLoadPackage(LoadPackageParam param) throws Throwable {
@@ -34,11 +36,22 @@ public class Patch implements IXposedHookLoadPackage {
 
     private void hookWifiController(ClassLoader loader) {
         final Class<?> controller = XposedHelpers.findClass("com.android.settings.wifi.WifiConfigController", loader);
-        XposedHelpers.findAndHookConstructor(controller,
-                "com.android.settings.wifi.WifiConfigUiBase",
-                View.class,
-                "com.android.settings.wifi.AccessPoint",
-                boolean.class, methodHook);
+        if (isAboveM) {
+            XposedHelpers.findAndHookConstructor(controller,
+                    "com.android.settings.wifi.WifiConfigUiBase",
+                    View.class,
+                    "com.android.settingslib.wifi.AccessPoint",
+                    boolean.class,
+                    boolean.class,
+                    methodHook);
+        } else {
+            XposedHelpers.findAndHookConstructor(controller,
+                    "com.android.settings.wifi.WifiConfigUiBase",
+                    View.class,
+                    "com.android.settings.wifi.AccessPoint",
+                    boolean.class,
+                    methodHook);
+        }
     }
 
     private final XC_MethodHook methodHook = new XC_MethodHook() {
