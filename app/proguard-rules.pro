@@ -17,3 +17,5 @@
 #}
 
 -keep class * implements de.robv.android.xposed.IXposedMod
+
+-keepattributes SourceFile,LineNumberTable
