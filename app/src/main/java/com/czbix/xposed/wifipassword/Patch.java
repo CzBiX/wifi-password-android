@@ -18,6 +18,7 @@ import java.util.List;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
@@ -45,12 +46,29 @@ public class Patch implements IXposedHookLoadPackage {
                     boolean.class,
                     methodHook);
         } else {
-            XposedHelpers.findAndHookConstructor(controller,
-                    "com.android.settings.wifi.WifiConfigUiBase",
-                    View.class,
-                    "com.android.settings.wifi.AccessPoint",
-                    boolean.class,
-                    methodHook);
+            boolean hookFailed = false;
+            try {
+                XposedHelpers.findAndHookConstructor(controller,
+                        "com.android.settings.wifi.WifiConfigUiBase",
+                        View.class,
+                        "com.android.settings.wifi.AccessPoint",
+                        boolean.class,
+                        methodHook);
+            } catch (NoSuchMethodError e) {
+                XposedBridge.log("Hook default WifiConfigController constructor failed");
+                hookFailed = true;
+            }
+
+            if (hookFailed) {
+                // HACK: Samsung changed the constructor, try to hook it
+                XposedHelpers.findAndHookConstructor(controller,
+                        "com.android.settings.wifi.WifiConfigUiBase",
+                        View.class,
+                        "com.android.settings.wifi.AccessPoint",
+                        boolean.class,
+                        boolean.class,
+                        methodHook);
+            }
         }
     }
 
