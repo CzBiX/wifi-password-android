@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.UserHandle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
@@ -116,8 +117,16 @@ public class Patch implements IXposedHookLoadPackage {
         }
 
         private void addRow(MethodHookParam param, int idPwd, ViewGroup group, final String ssid, final String pwd) {
-            XposedHelpers.callMethod(param.thisObject, "addRow", group, idPwd, pwd);
+            XposedHelpers.callMethod(param.thisObject, "addRow", group, idPwd, "\\(╯-╰)/");
             final View view = group.getChildAt(group.getChildCount() - 1);
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    final int idValue = v.getContext().getResources().getIdentifier("value", "id", PKG_NAME);
+                    ((TextView) view.findViewById(idValue)).setText(pwd);
+                }
+            });
 
             view.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
