@@ -2,12 +2,12 @@
           package="com.czbix.xposed.wifipassword">
 
     <application android:allowBackup="false"
-                 android:label="WiFi Password"
+                 android:label="@string/app_title"
                  >
         <meta-data android:name="xposedmodule"
                    android:value="true"/>
         <meta-data android:name="xposeddescription"
-                   android:value="View WiFi Passowrd in WiFi Settings"/>
+                   android:value="@string/app_desc"/>
         <meta-data android:name="xposedminversion"
                    android:value="54"/>
     </application>

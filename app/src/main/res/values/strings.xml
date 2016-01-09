@@ -3,4 +3,6 @@
     <string name="toast_wifi_info_copied">WiFi info copied!</string>
     <string name="clip_info_format">SSID: %1$s\nPWD: %2$s</string>
     <string name="empty_password">N/A</string>
+    <string name="app_title">WiFi Password</string>
+    <string name="app_desc">View WiFi Password in WiFi Settings</string>
 </resources>
