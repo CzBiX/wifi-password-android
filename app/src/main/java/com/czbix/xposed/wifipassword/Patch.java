@@ -25,9 +25,10 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class Patch implements IXposedHookLoadPackage {
     private static final String PKG_NAME = "com.android.settings";
-    private static final boolean isAboveM = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    private static final boolean IS_ABOVE_M = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    private static final boolean IS_SAMSUNG = Build.BRAND.equals("samsung");
+    private static final boolean IS_HTC = Build.BRAND.equals("htc");
 
-    @Override
     public void handleLoadPackage(LoadPackageParam param) throws Throwable {
         if (!param.packageName.equals(PKG_NAME)) {
             return;
@@ -38,39 +39,65 @@ public class Patch implements IXposedHookLoadPackage {
 
     private void hookWifiController(ClassLoader loader) {
         final Class<?> controller = XposedHelpers.findClass("com.android.settings.wifi.WifiConfigController", loader);
-        if (isAboveM) {
-            XposedHelpers.findAndHookConstructor(controller,
+
+        do {
+            if (IS_ABOVE_M && tryHookConstructor(controller,
+                    "Hook M constructor",
                     "com.android.settings.wifi.WifiConfigUiBase",
                     View.class,
                     "com.android.settingslib.wifi.AccessPoint",
                     boolean.class,
                     boolean.class,
-                    methodHook);
-        } else {
-            boolean hookFailed = false;
-            try {
-                XposedHelpers.findAndHookConstructor(controller,
-                        "com.android.settings.wifi.WifiConfigUiBase",
-                        View.class,
-                        "com.android.settings.wifi.AccessPoint",
-                        boolean.class,
-                        methodHook);
-            } catch (NoSuchMethodError e) {
-                XposedBridge.log("Hook default WifiConfigController constructor failed");
-                hookFailed = true;
+                    methodHook)) {
+                break;
             }
 
-            if (hookFailed) {
-                // HACK: Samsung changed the constructor, try to hook it
-                XposedHelpers.findAndHookConstructor(controller,
-                        "com.android.settings.wifi.WifiConfigUiBase",
-                        View.class,
-                        "com.android.settings.wifi.AccessPoint",
-                        boolean.class,
-                        boolean.class,
-                        methodHook);
+            if (tryHookConstructor(controller,
+                    "Hook default WifiConfigController constructor",
+                    "com.android.settings.wifi.WifiConfigUiBase",
+                    View.class,
+                    "com.android.settings.wifi.AccessPoint",
+                    boolean.class,
+                    methodHook)) {
+                break;
             }
+
+            if (IS_SAMSUNG && tryHookConstructor(controller,
+                    "Hook Samsung constructor",
+                    "com.android.settings.wifi.WifiConfigUiBase",
+                    View.class,
+                    "com.android.settings.wifi.AccessPoint",
+                    boolean.class,
+                    boolean.class,
+                    methodHook)) {
+                break;
+            }
+
+            if (IS_HTC && tryHookConstructor(controller,
+                    "Hook HTC constructor",
+                    "com.android.settings.wifi.WifiConfigUiBase",
+                    View.class,
+                    "com.android.settings.wifi.AccessPoint",
+                    int.class,
+                    methodHook)) {
+                break;
+            }
+
+            XposedBridge.log("All constructor hook failed!");
         }
+        while (false);
+    }
+
+    private static boolean tryHookConstructor(Class<?> clazz, String msg,
+            Object... parameterTypesAndCallback) {
+        try {
+            XposedHelpers.findAndHookConstructor(clazz, parameterTypesAndCallback);
+        } catch (NoSuchMethodError e) {
+            XposedBridge.log(msg + " failed");
+            return false;
+        }
+
+        return true;
     }
 
     private final XC_MethodHook methodHook = new XC_MethodHook() {
@@ -91,9 +118,16 @@ public class Patch implements IXposedHookLoadPackage {
                 return;
             }
 
-            final boolean mEdit = XposedHelpers.getBooleanField(param.thisObject, "mEdit");
-            if (mEdit) {
-                return;
+            if (IS_HTC) {
+                final int mEdit = XposedHelpers.getIntField(param.thisObject, "mEdit");
+                if (mEdit != 0) {
+                    return;
+                }
+            } else {
+                final boolean mEdit = XposedHelpers.getBooleanField(param.thisObject, "mEdit");
+                if (mEdit) {
+                    return;
+                }
             }
 
             final View mView = (View) XposedHelpers.getObjectField(param.thisObject, "mView");
