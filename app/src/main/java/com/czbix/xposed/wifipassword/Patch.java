@@ -107,7 +107,7 @@ public class Patch implements IXposedHookLoadPackage {
             String pwd;
             if (mSecurity != 1 && mSecurity != 2) {
                 // open network or EAP
-                pwd = "N/A";
+                pwd = resources.getString(R.string.empty_password);
             } else {
                 pwd = getWiFiPassword(mView.getContext(), networkId);
             }
@@ -134,8 +134,8 @@ public class Patch implements IXposedHookLoadPackage {
                     final Context context = v.getContext();
                     final ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                     clipboardManager.setPrimaryClip(ClipData.newPlainText(null,
-                            String.format("SSID: %s\nPWD: %s", ssid, pwd)));
-                    Toast.makeText(context, "WiFi info copied!", Toast.LENGTH_SHORT).show();
+                            context.getString(R.string.clip_info_format, ssid, pwd)));
+                    Toast.makeText(context, R.string.toast_wifi_info_copied, Toast.LENGTH_SHORT).show();
                     return false;
                 }
             });

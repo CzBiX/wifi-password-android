@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toast_wifi_info_copied">WiFi info copied!</string>
+    <string name="clip_info_format">SSID: %1$s\nPWD: %2$s</string>
+    <string name="empty_password">N/A</string>
+</resources>
