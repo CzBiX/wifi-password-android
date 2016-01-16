@@ -101,6 +101,8 @@ public class Patch implements IXposedHookLoadPackage {
     }
 
     private final XC_MethodHook methodHook = new XC_MethodHook() {
+        private Context mContext;
+
         @Override
         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
             if (!isOwner()) {
@@ -132,7 +134,11 @@ public class Patch implements IXposedHookLoadPackage {
 
             final View mView = (View) XposedHelpers.getObjectField(param.thisObject, "mView");
 
-            final Resources resources = mView.getContext().getResources();
+            final Context context = mView.getContext();
+            mContext = context.createPackageContext(BuildConfig.APPLICATION_ID,
+                    Context.CONTEXT_RESTRICTED);
+
+            final Resources resources = context.getResources();
             final int idInfo = resources.getIdentifier("info", "id", PKG_NAME);
             final int idPwd = resources.getIdentifier("wifi_password", "string", PKG_NAME);
             final ViewGroup group = (ViewGroup) mView.findViewById(idInfo);
@@ -141,9 +147,9 @@ public class Patch implements IXposedHookLoadPackage {
             String pwd;
             if (mSecurity != 1 && mSecurity != 2) {
                 // open network or EAP
-                pwd = resources.getString(R.string.empty_password);
+                pwd = mContext.getString(R.string.empty_password);
             } else {
-                pwd = getWiFiPassword(mView.getContext(), networkId);
+                pwd = getWiFiPassword(context, networkId);
             }
 
             final String ssid = (String) XposedHelpers.getObjectField(mAccessPoint, "ssid");
@@ -168,8 +174,8 @@ public class Patch implements IXposedHookLoadPackage {
                     final Context context = v.getContext();
                     final ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                     clipboardManager.setPrimaryClip(ClipData.newPlainText(null,
-                            context.getString(R.string.clip_info_format, ssid, pwd)));
-                    Toast.makeText(context, R.string.toast_wifi_info_copied, Toast.LENGTH_SHORT).show();
+                            mContext.getString(R.string.clip_info_format, ssid, pwd)));
+                    Toast.makeText(context, mContext.getString(R.string.toast_wifi_info_copied), Toast.LENGTH_SHORT).show();
                     return false;
                 }
             });
