@@ -97,6 +97,7 @@ public class Patch implements IXposedHookLoadPackage {
             return false;
         }
 
+        XposedBridge.log(msg + " success");
         return true;
     }
 
@@ -163,8 +164,20 @@ public class Patch implements IXposedHookLoadPackage {
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    final int idValue = v.getContext().getResources().getIdentifier("value", "id", PKG_NAME);
-                    ((TextView) view.findViewById(idValue)).setText(pwd);
+                    final Context context = v.getContext();
+                    final int idValue = context.getResources().getIdentifier("value", "id", PKG_NAME);
+                    final TextView textView = (TextView) view.findViewById(idValue);
+                    if (textView == null) {
+                        if (IS_HTC) {
+                            // I hate HTC
+                            XposedHelpers.callMethod(view, "setSecondaryText", pwd);
+                        } else {
+                            // show password in toast as alternative
+                            Toast.makeText(context, pwd, Toast.LENGTH_LONG).show();
+                        }
+                    } else {
+                        textView.setText(pwd);
+                    }
                 }
             });
 
