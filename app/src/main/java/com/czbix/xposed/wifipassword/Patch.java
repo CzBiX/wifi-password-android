@@ -170,7 +170,8 @@ public class Patch implements IXposedHookLoadPackage {
                     if (textView == null) {
                         if (IS_HTC) {
                             // I hate HTC
-                            XposedHelpers.callMethod(view, "setSecondaryText", pwd);
+                            final int idItem = context.getResources().getIdentifier("item", "id", PKG_NAME);
+                            XposedHelpers.callMethod(view.findViewById(idItem), "setSecondaryText", pwd);
                         } else {
                             // show password in toast as alternative
                             Toast.makeText(context, pwd, Toast.LENGTH_LONG).show();
