@@ -147,7 +147,7 @@ public class Patch implements IXposedHookLoadPackage {
             final int mSecurity = XposedHelpers.getIntField(param.thisObject, "mAccessPointSecurity");
             String pwd;
             if (mSecurity != 1 && mSecurity != 2) {
-                // open network or EAP
+                // not WEP/PSK
                 pwd = mContext.getString(R.string.empty_password);
             } else {
                 pwd = getWiFiPassword(context, networkId);
