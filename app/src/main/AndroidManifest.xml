@@ -9,7 +9,7 @@
         <meta-data android:name="xposeddescription"
                    android:value="@string/app_desc"/>
         <meta-data android:name="xposedminversion"
-                   android:value="54"/>
+                   android:value="60"/>
     </application>
 
 </manifest>

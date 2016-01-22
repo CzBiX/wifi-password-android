@@ -30,11 +30,11 @@ public class Patch implements IXposedHookLoadPackage {
     private static final boolean IS_HTC = Build.BRAND.equals("htc");
 
     public void handleLoadPackage(LoadPackageParam param) throws Throwable {
-        if (!param.packageName.equals(PKG_NAME)) {
-            return;
+        if (param.packageName.equals("android")) {
+            ServerPatch.hookWifiStore(param.classLoader);
+        } else if (param.packageName.equals(PKG_NAME)) {
+            hookWifiController(param.classLoader);
         }
-
-        hookWifiController(param.classLoader);
     }
 
     private void hookWifiController(ClassLoader loader) {
