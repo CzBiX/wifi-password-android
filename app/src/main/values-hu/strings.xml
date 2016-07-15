@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toast_wifi_info_copied">WiFi adatok másolva!</string>
+    <string name="clip_info_format">SSID: %1$s\nPWD: %2$s</string>
+    <string name="empty_password">[NINCS]</string>
+    <string name="app_title">WiFi Jelszó</string>
+    <string name="app_desc">WiFi jelszó megtekintése a WiFi beállításiban</string>
+</resources>
