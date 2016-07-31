@@ -1,2 +1,2 @@
 # WiFi Password Viewer
-A Xposed module to view WiFi Password in Settings.
+An Xposed module to view WiFi passwords in Settings.
