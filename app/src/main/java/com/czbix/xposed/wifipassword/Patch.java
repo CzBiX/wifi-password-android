@@ -158,7 +158,11 @@ public class Patch implements IXposedHookLoadPackage {
         }
 
         private void addRow(MethodHookParam param, int idPwd, ViewGroup group, final String ssid, final String pwd) {
-            XposedHelpers.callMethod(param.thisObject, "addRow", group, idPwd, mContext.getString(R.string.password_mask));
+            String defaultPwd = mContext.getString(R.string.empty_password);
+            if (!defaultPwd.equals(pwd)) {
+                defaultPwd = new String(new char[pwd.length()]).replace("\0", "·");
+            }
+            XposedHelpers.callMethod(param.thisObject, "addRow", group, idPwd, defaultPwd);
             final View view = group.getChildAt(group.getChildCount() - 1);
 
             view.setOnClickListener(new View.OnClickListener() {
@@ -203,9 +207,9 @@ public class Patch implements IXposedHookLoadPackage {
             for (WifiConfiguration config : list) {
                 if (config.networkId == networkId) {
                     if (config.allowedKeyManagement.get(KeyMgmt.WPA_PSK)) {
-                        return config.preSharedKey;
+                        return config.preSharedKey.replaceAll("^\"|\"$", "");
                     } else {
-                        return config.wepKeys[config.wepTxKeyIndex];
+                        return config.wepKeys[config.wepTxKeyIndex].replaceAll("^\"|\"$", "");
                     }
                 }
             }
