@@ -145,12 +145,17 @@ public class Patch implements IXposedHookLoadPackage {
             final ViewGroup group = (ViewGroup) mView.findViewById(idInfo);
 
             final int mSecurity = XposedHelpers.getIntField(param.thisObject, "mAccessPointSecurity");
+            final String emptyPassword = mContext.getString(R.string.empty_password);
             String pwd;
             if (mSecurity != 1 && mSecurity != 2) {
                 // not WEP/PSK
-                pwd = mContext.getString(R.string.empty_password);
+                pwd = emptyPassword;
             } else {
                 pwd = getWiFiPassword(context, networkId);
+                // more check, more safe
+                if (pwd == null) {
+                    pwd = emptyPassword;
+                }
             }
 
             final String ssid = (String) XposedHelpers.getObjectField(mAccessPoint, "ssid");
@@ -159,7 +164,7 @@ public class Patch implements IXposedHookLoadPackage {
 
         private void addRow(MethodHookParam param, int idPwd, ViewGroup group, final String ssid, final String pwd) {
             String defaultPwd = mContext.getString(R.string.empty_password);
-            if (!defaultPwd.equals(pwd)) {
+            if (!pwd.equals(defaultPwd)) {
                 defaultPwd = new String(new char[pwd.length()]).replace("\0", "·");
             }
             XposedHelpers.callMethod(param.thisObject, "addRow", group, idPwd, defaultPwd);
