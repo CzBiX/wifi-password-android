@@ -16,6 +16,6 @@
 #   public *;
 #}
 
--keep class * implements de.robv.android.xposed.IXposedMod
+-keep class * implements de.robv.android.xposed.IXposedHookLoadPackage
 
 -keepattributes SourceFile,LineNumberTable

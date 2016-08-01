@@ -1,15 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.czbix.xposed.wifipassword">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.czbix.xposed.wifipassword">
 
     <application android:allowBackup="false"
-                 android:label="@string/app_title"
-                 >
+        android:label="@string/app_title"
+        >
         <meta-data android:name="xposedmodule"
-                   android:value="true"/>
+            android:value="true"/>
         <meta-data android:name="xposeddescription"
-                   android:value="@string/app_desc"/>
+            android:value="@string/app_desc"
+            tools:ignore="ManifestResource" />
         <meta-data android:name="xposedminversion"
-                   android:value="60"/>
+            android:value="60"/>
     </application>
 
 </manifest>
