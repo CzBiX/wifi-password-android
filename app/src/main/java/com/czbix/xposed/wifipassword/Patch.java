@@ -92,7 +92,7 @@ public class Patch implements IXposedHookLoadPackage {
             Object... parameterTypesAndCallback) {
         try {
             XposedHelpers.findAndHookConstructor(clazz, parameterTypesAndCallback);
-        } catch (NoSuchMethodError e) {
+        } catch (Error e) {
             XposedBridge.log(msg + " failed");
             return false;
         }
