@@ -1,15 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "25.0.0"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "com.czbix.xposed.wifipassword"
         minSdkVersion 21
         targetSdkVersion 23
-        versionCode 11
-        versionName "1.10"
+        versionCode 12
+        versionName "1.11"
     }
     buildTypes {
         release {
