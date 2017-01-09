@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<!-- Translated with love by M. Kucharskov and Mezurashii -->
+    <!-- Translated with love by M. Kucharskov and Mezurashii -->
     <string name="toast_wifi_info_copied">Skopiowano SSID wraz z hasłem!</string>
     <string name="clip_info_format">SSID: %1$s\nHasło: %2$s</string>
     <string name="empty_password">Brak</string>
