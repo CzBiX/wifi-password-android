@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toast_wifi_info_copied">SSID e Senha copiado!</string>
+    <string name="clip_info_format">SSID: %1$s\nSenha: %2$s</string>
+    <string name="empty_password">Nenhum</string>
+    <string name="app_title">WiFi Senhas</string>
+    <string name="app_desc">Ver senhas WiFi em Configurações</string>
+</resources>
