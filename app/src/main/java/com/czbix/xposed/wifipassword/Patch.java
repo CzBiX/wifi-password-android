@@ -25,6 +25,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class Patch implements IXposedHookLoadPackage {
     private static final String PKG_NAME = "com.android.settings";
+    private static final boolean IS_ABOVE_N = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
     private static final boolean IS_ABOVE_M = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     private static final boolean IS_SAMSUNG = Build.BRAND.equals("samsung");
     private static final boolean IS_HTC = Build.BRAND.equals("htc");
@@ -41,6 +42,16 @@ public class Patch implements IXposedHookLoadPackage {
         final Class<?> controller = XposedHelpers.findClass("com.android.settings.wifi.WifiConfigController", loader);
 
         do {
+            if (IS_ABOVE_N && tryHookConstructor(controller,
+                    "Hook N constructor",
+                    "com.android.settings.wifi.WifiConfigUiBase",
+                    View.class,
+                    "com.android.settingslib.wifi.AccessPoint",
+                    int.class,
+                    methodHook)) {
+                break;
+            }
+
             if (IS_ABOVE_M && tryHookConstructor(controller,
                     "Hook M constructor",
                     "com.android.settings.wifi.WifiConfigUiBase",
@@ -93,7 +104,6 @@ public class Patch implements IXposedHookLoadPackage {
         try {
             XposedHelpers.findAndHookConstructor(clazz, parameterTypesAndCallback);
         } catch (Error e) {
-            XposedBridge.log(msg + " failed");
             return false;
         }
 
@@ -121,7 +131,13 @@ public class Patch implements IXposedHookLoadPackage {
                 return;
             }
 
-            if (IS_HTC) {
+            if (IS_ABOVE_N) {
+                final int mMode = XposedHelpers.getIntField(param.thisObject, "mMode");
+                // WifiConfigUiBase.MODE_VIEW
+                if (mMode != 0) {
+                    return;
+                }
+            } else if (IS_HTC) {
                 final int mEdit = XposedHelpers.getIntField(param.thisObject, "mEdit");
                 if (mEdit != 0) {
                     return;
@@ -205,16 +221,21 @@ public class Patch implements IXposedHookLoadPackage {
         }
 
         private String getWiFiPassword(Context context, int networkId) {
-            final WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+            final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             @SuppressWarnings("unchecked")
             final List<WifiConfiguration> list = (List<WifiConfiguration>) XposedHelpers.callMethod(wifiManager, "getPrivilegedConfiguredNetworks");
 
+            String pwd;
             for (WifiConfiguration config : list) {
                 if (config.networkId == networkId) {
                     if (config.allowedKeyManagement.get(KeyMgmt.WPA_PSK)) {
-                        return config.preSharedKey.replaceAll("^\"|\"$", "");
+                        pwd = config.preSharedKey;
                     } else {
-                        return config.wepKeys[config.wepTxKeyIndex].replaceAll("^\"|\"$", "");
+                        pwd = config.wepKeys[config.wepTxKeyIndex];
+                    }
+
+                    if (pwd != null) {
+                        return pwd.replaceAll("^\"|\"$", "");
                     }
                 }
             }
