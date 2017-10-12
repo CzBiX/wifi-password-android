@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="toast_wifi_info_copied">¡Contraseña y SSID copiadas!</string>
+    <string name="clip_info_format">SSID: %1$s\nContraseña: %2$s</string>
+    <string name="empty_password">Nada</string>
+    <string name="app_title">Contraseña de WiFi</string>
+    <string name="app_desc">Ver contraseñas de WiFi en Ajustes</string>
+</resources>
