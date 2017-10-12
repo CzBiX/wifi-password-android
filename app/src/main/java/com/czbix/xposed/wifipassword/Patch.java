@@ -9,6 +9,7 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.UserHandle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,14 +43,27 @@ public class Patch implements IXposedHookLoadPackage {
         final Class<?> controller = XposedHelpers.findClass("com.android.settings.wifi.WifiConfigController", loader);
 
         do {
-            if (IS_ABOVE_N && tryHookConstructor(controller,
-                    "Hook N constructor",
-                    "com.android.settings.wifi.WifiConfigUiBase",
-                    View.class,
-                    "com.android.settingslib.wifi.AccessPoint",
-                    int.class,
-                    methodHook)) {
-                break;
+            if (IS_ABOVE_N) {
+                if (tryHookConstructor(controller,
+                        "Hook N constructor",
+                        "com.android.settings.wifi.WifiConfigUiBase",
+                        View.class,
+                        "com.android.settingslib.wifi.AccessPoint",
+                        int.class,
+                        methodHook)) {
+                    break;
+                }
+
+                if (IS_SAMSUNG && tryHookConstructor(controller,
+                        "Hook Samsung N constructor",
+                        "com.android.settings.wifi.WifiConfigUiBase",
+                        View.class,
+                        "com.android.settingslib.wifi.AccessPoint",
+                        int.class,
+                        Bundle.class,
+                        methodHook)) {
+                    break;
+                }
             }
 
             if (IS_ABOVE_M && tryHookConstructor(controller,
@@ -64,7 +78,7 @@ public class Patch implements IXposedHookLoadPackage {
             }
 
             if (tryHookConstructor(controller,
-                    "Hook default WifiConfigController constructor",
+                    "Hook L constructor",
                     "com.android.settings.wifi.WifiConfigUiBase",
                     View.class,
                     "com.android.settings.wifi.AccessPoint",
