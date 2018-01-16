@@ -26,21 +26,26 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class Patch implements IXposedHookLoadPackage {
     private static final String PKG_NAME = "com.android.settings";
+    private static final String PKG_NAME_LGE = "com.lge.wifisettings";
     private static final boolean IS_ABOVE_N = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
     private static final boolean IS_ABOVE_M = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     private static final boolean IS_SAMSUNG = Build.BRAND.equals("samsung");
     private static final boolean IS_HTC = Build.BRAND.equals("htc");
+    private static final boolean IS_LG = Build.BRAND.equals("lge");
 
     public void handleLoadPackage(LoadPackageParam param) throws Throwable {
         if (param.packageName.equals("android")) {
             ServerPatch.hookWifiStore(param.classLoader);
+        } else if (IS_LG && param.packageName.equals(PKG_NAME_LGE)) {
+            hookWifiController(param.classLoader);
         } else if (param.packageName.equals(PKG_NAME)) {
             hookWifiController(param.classLoader);
         }
     }
 
     private void hookWifiController(ClassLoader loader) {
-        final Class<?> controller = XposedHelpers.findClass("com.android.settings.wifi.WifiConfigController", loader);
+        final String controllerClassName = IS_LG ? "com.lge.wifisettings.WifiConfigController" : "com.android.settings.wifi.WifiConfigController";
+        final Class<?> controller = XposedHelpers.findClass(controllerClassName, loader);
 
         do {
             if (IS_ABOVE_N) {
@@ -49,6 +54,16 @@ public class Patch implements IXposedHookLoadPackage {
                         "com.android.settings.wifi.WifiConfigUiBase",
                         View.class,
                         "com.android.settingslib.wifi.AccessPoint",
+                        int.class,
+                        methodHook)) {
+                    break;
+                }
+
+                if (IS_LG && tryHookConstructor(controller,
+                        "Hook LG N constructor",
+                        "com.lge.wifisettings.WifiConfigUiBase",
+                        View.class,
+                        "com.lge.wifisettings.AccessPoint",
                         int.class,
                         methodHook)) {
                     break;
